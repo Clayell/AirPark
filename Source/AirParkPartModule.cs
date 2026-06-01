@@ -18,6 +18,9 @@ namespace AirPark
         private Vector3d ParkPosition;
 
         [KSPField(isPersistant = true, guiActive = false)]
+        private Quaternion ParkRotation;
+
+        [KSPField(isPersistant = true, guiActive = false)]
         Vector3d ParkVelocity;
 
         [KSPField(isPersistant = true, guiActive = false)]
@@ -73,6 +76,7 @@ namespace AirPark
 
                     //ParkPosition = vessel.vesselTransform.position;
                     ParkPosition = GetVesselPosition();
+                    ParkRotation = GetVesselRotation();
 
                     //we only want to remember the initial velocity, not subseqent updates by onFixedUpdate()
                     ParkVelocity = vessel.GetSrfVelocity();
@@ -157,6 +161,7 @@ namespace AirPark
                 {
                     //ParkPosition = vessel.vesselTransform.position;
                     ParkPosition = GetVesselPosition();
+                    ParkRotation = GetVesselRotation();
                     ParkVessel();
                 }
             }
@@ -224,12 +229,13 @@ namespace AirPark
         {
             vessel.SetWorldVelocity(Vector3d.zero);
             vessel.SetPosition(ParkPosition, true);
-
+            vessel.SetRotation(ParkRotation, false);
         }
         #endregion
 
         public Vector3d GetVesselPosition() => vessel.vesselTransform.position;
 
+        public Quaternion GetVesselRotation() => vessel.vesselTransform.rotation;
     }
 #endif
 }
