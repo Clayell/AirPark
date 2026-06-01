@@ -15,22 +15,16 @@ namespace AirPark
 
         //Velocity and Postion
         [KSPField(isPersistant = true, guiActive = false)]
-        private Vector3 ParkPosition;
+        private Vector3d ParkPosition;
 
         [KSPField(isPersistant = true, guiActive = false)]
-        Vector3 ParkVelocity = new Vector3(0f, 0f, 0f);
-
-        private static Vector3 zeroVector = new Vector3(0f, 0f, 0f);
+        Vector3d ParkVelocity;
 
         [KSPField(isPersistant = true, guiActive = false)]
-        private Vector3 ParkAcceleration = new Vector3(0f, 0f, 0f);
+        private Vector3d ParkAcceleration;
 
         [KSPField(isPersistant = true, guiActive = false)]
-        private Vector3 ParkAngularVelocity = new Vector3(0f, 0f, 0f);
-
-        [KSPField(isPersistant = true, guiActive = false)]
-        private double ParkAltitude = 0;
-
+        private Vector3d ParkAngularVelocity;
 
         //Vessel State
         [KSPField(isPersistant = true, guiActive = true)] //flip to false guiactive on release
@@ -79,8 +73,6 @@ namespace AirPark
 
                     //ParkPosition = vessel.vesselTransform.position;
                     ParkPosition = GetVesselPosition();
-
-                    ParkAltitude = Altitude;
 
                     //we only want to remember the initial velocity, not subseqent updates by onFixedUpdate()
                     ParkVelocity = vessel.GetSrfVelocity();
@@ -133,8 +125,7 @@ namespace AirPark
             if (!HighLogic.LoadedSceneIsFlight) { return; }
             if (Parked)
             {
-                //vessel.SetPosition(ParkPosition, true);
-                setVesselPosition();
+                setVesselStill();
 
             }
             if (vessel == null | !vessel.isActiveVessel) { return; }
@@ -231,74 +222,13 @@ namespace AirPark
 
         private void setVesselStill()
         {
-            vessel.IgnoreGForces(240);
-            vessel.SetWorldVelocity(zeroVector);
-            vessel.acceleration = zeroVector;
-            vessel.angularVelocity = zeroVector;
-            vessel.geeForce = 0.0;
-            setVesselPosition();
+            vessel.SetWorldVelocity(Vector3d.zero);
+            vessel.SetPosition(ParkPosition, true);
 
         }
         #endregion
 
-        #region Postion
-        //Code Adapted from Hyperedit landing functions 
-        //https://github.com/Ezriilc/HyperEdit
-
-        public CelestialBody Body { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Altitude { get; set; }
-        public double alt;
-        //public Vector3d teleportPosition;
-
-        private void setVesselPosition()
-        {
-            vessel.IgnoreGForces(240);
-            vessel.orbitDriver.pos = ParkPosition;
-            //vessel.vesselTransform.position = ParkPosition;
-        }
-        #endregion
-
-
-        #region Postion
-        //Code Adapted from Hyperedit landing functions 
-        //https://github.com/Ezriilc/HyperEdit
-
-        public static Vector3d teleportPosition;
-
-        public void SetAltitudeToCurrent()
-        {
-            var pqs = Body.pqsController;
-            if (pqs == null)
-            {
-                Destroy(this);
-                return;
-            }
-            var alt = pqs.GetSurfaceHeight(QuaternionD.AngleAxis(Longitude, Vector3d.down) * QuaternionD.AngleAxis(Latitude, Vector3d.forward) * Vector3d.right) - pqs.radius;
-            //alt = Math.Max(alt, 0); // No need for underwater check, allow park subs
-            Altitude = GetComponent<Vessel>().altitude - alt;
-        }
-
-        public  Vector3d GetVesselPosition()
-        {
-            var pqs = vessel.mainBody.pqsController;
-            if (pqs == null)
-            {
-                //Destroy(this);
-                return zeroVector;
-            }
-
-            alt = pqs.GetSurfaceHeight(vessel.mainBody.GetRelSurfaceNVector(Latitude, Longitude)) - vessel.mainBody.Radius;
-            alt = Math.Max(alt, 0); // Underwater!
-
-            teleportPosition = vessel.mainBody.GetRelSurfacePosition(Latitude, Longitude, alt + Altitude);
-            var a = vessel.mainBody.GetWorldSurfacePosition(Latitude, Longitude, alt+Altitude);
-            
-            return teleportPosition;
-        }
-
-        #endregion
+        public Vector3d GetVesselPosition() => vessel.vesselTransform.position;
 
     }
 #endif
